@@ -1,0 +1,188 @@
+# Growing Random Graphs with Quantum Rules
+
+Python implementation, comparison with classical growth, and a reproduction of the
+results of **Jnane, H.; Di Molfetta, G.; Miatto, F. M. (2020). "Growing Random Graphs
+with Quantum Rules." EPTCS 315, pp. 38–47.** DOI: [10.4204/EPTCS.315.4](https://doi.org/10.4204/EPTCS.315.4)
+
+> **What this project is about.** A node is added to a graph, one at a time. Instead
+> of the classical "richer gets richer" rule (preferential attachment), the target
+> node(s) are chosen by letting a **quantum walker** evolve on the current graph for a
+> random time and then measuring its position (the Born rule). Because the walker's
+> amplitudes can interfere, the resulting graphs are structurally different from both
+> classical random graphs and preferential-attachment graphs. Everything here is a
+> **classical simulation** of that quantum process — no quantum hardware is involved.
+
+For the full write-up — theoretical background, a step-by-step account of how every
+figure is built, the numbers behind each claim, limitations, and a detailed
+bibliography — see
+[`docs/growing_random_graphs_quantum_rules_documentation.docx`](docs/growing_random_graphs_quantum_rules_documentation.docx).
+This README is a shorter, practical companion to that document.
+
+---
+
+## Project structure
+
+```
+.
+├── README.md
+├── main.ipynb                          # orchestrates all 4 stages, displays the figures inline
+├── docs/
+│   └── growing_random_graphs_quantum_rules_documentation.docx
+├── src/
+│   ├── grafo_quantico.py               # Stage 1: simple quantum-inspired model
+│   ├── grafo_quantico_passo_a_passo.py # Stage 2: growth phases (static GIFs)
+│   ├── grafo_classico_passo_a_passo.py # Stage 3: classical growth (comparison)
+│   └── reproduce_jnane_paper.py        # Stage 4: paper reproduction (Figs. 2–8 + extra)
+│
+│   # created on first run, at the working directory the scripts are launched from:
+├── fases/                              # Stage 2 output: static GIFs (quantum)
+├── fases_classico/                     # Stage 3 output: static GIFs (classical)
+└── paper_figures/                      # Stage 4 output: Figs. 2–8, extra check, results.pkl
+```
+
+> **Naming note.** Stages 1–3 keep their original Portuguese file names and internal
+> identifiers (`grafo_quantico.py`, `crescer_com_historico`, `graus`, …); Stage 4 was
+> translated to English (`reproduce_jnane_paper.py`, `grow_graph`, `degrees`, …). Both
+> are functionally complete and independent of each other.
+
+## Requirements
+
+Python 3.9+ (tested on 3.12). No GPU or quantum hardware needed.
+
+```bash
+pip install numpy scipy networkx matplotlib pillow
+```
+
+| Package | Used for |
+|---|---|
+| `numpy` | linear algebra (diagonalization, matrix exponential), random sampling |
+| `scipy` | sparse matrix exponential (`expm_multiply`), shortest paths (`csgraph`) — Stage 4 only |
+| `networkx` | graph data structure, layout, drawing |
+| `matplotlib` | all figures |
+| `pillow` | PNG → GIF conversion (matplotlib cannot write GIF files directly) |
+
+## Quick start
+
+```bash
+git clone <this-repo>
+cd <this-repo>
+pip install numpy scipy networkx matplotlib pillow
+jupyter notebook main.ipynb
+```
+
+`main.ipynb` runs all four stages end to end and displays every figure inline. Each
+stage can also be run stand-alone from a terminal (commands below); run them from the
+project root so the output folders land in the right place.
+
+## The four stages
+
+### Stage 1 — Simple quantum-inspired model
+
+```bash
+python src/grafo_quantico.py
+```
+
+A minimal model, not a strict reproduction of the paper: a quantum walker evolves for a
+**fixed** time `t = exp(-iAt)` and the new node attaches to `m` nodes sampled from the
+resulting Born-rule probabilities. Cost is `O(n³)` per step (`O(N⁴)` for the whole run),
+so it is only meant for hundreds of nodes. Produces `grafo_quantico.png` and prints
+basic statistics.
+
+### Stage 2 — Growth phases (static GIFs)
+
+```bash
+python src/grafo_quantico_passo_a_passo.py
+```
+
+Re-runs the Stage 1 process but stores the full growth history and renders selected
+phases (steps 0, 5, 10, 20, 30, 37 by default) as single-frame GIFs. Node color encodes
+the Born probability used to sample it; the new node is red. Output: `fases/fase_XX.gif`.
+
+### Stage 3 — Classical growth (comparison)
+
+```bash
+python src/grafo_classico_passo_a_passo.py
+```
+
+Same visualization as Stage 2, but the new node is chosen by a classical rule instead
+of a quantum walk:
+
+- `REGRA = "barabasi"` (default) — preferential attachment, `p ∝ degree`.
+- `REGRA = "passeio_classico"` — classical continuous-time random walk, `p(t) = e^{-Lt} p(0)`.
+
+Also prints a quick quantum-vs-classical comparison table. Output:
+`fases_classico/fase_XX.gif`.
+
+### Stage 4 — Reproducing the paper
+
+```bash
+python src/reproduce_jnane_paper.py [--fast] [--samples N] [--reuse]
+```
+
+Implements the paper's 1-, 2- and 3-walker models with an exponentially distributed
+collapse time `t ~ Exp(τ)`, and reproduces Figures 2–8 of the paper plus an extra check
+of the `E[n] ≈ 1/τ` mean star-size estimate. In Jupyter, call the equivalent function
+directly instead of using the CLI flags:
+
+```python
+import sys; sys.path.insert(0, "src")
+import reproduce_jnane_paper as paper
+
+paper.main(fast=True)     # lightweight run (a couple of minutes)
+paper.main()               # full run — ≈7 min on one core, matches the documentation exactly
+paper.main(reuse=True)     # only rebuild the figures from a previous run's paper_figures/results.pkl
+```
+
+Output: `paper_figures/fig2_trees_1_walker.png` … `fig8_clustering.png`,
+`extra_star_size.png`, and `paper_figures/results.pkl` (cached simulation results).
+
+## Results at a glance
+
+Qualitative agreement with the paper's claims (full numbers and discussion in
+`docs/…docx`, Section 5):
+
+| Claim in the paper | Status |
+|---|---|
+| Small τ → nodes form large stars | Reproduced |
+| Mean star size `E[n] ≈ 1/τ` | Reproduced (factor ≈ 0.9) |
+| Eigenvalues ≈ √m per star | Reproduced (qualitative) |
+| Degree distribution → power law for large τ | Partial (curve shape matches; no formal statistical fit) |
+| Diameter maximal for `0.1 < τ < 1` | Reproduced |
+| Leaf fraction stabilizes at τ ≈ 1, size-independent | Reproduced |
+| Clustering is 0 for 1 walker, decreases with τ | Reproduced (except at τ = 0.001) |
+| Possible phase transition at τ ≈ 1 | ❔ Not tested |
+
+## Known limitations
+
+- This is a **classical simulation** of a quantum dynamics: worst-case `O(n³)` cost per
+  growth step, which limits graph size (hundreds to a few thousand nodes).
+- Stage 4's statistical figures use only 8 samples per point over 500–600-node graphs;
+  shaded bands are ±1 standard deviation, not confidence intervals.
+- Some details are not specified in the paper (initial position of multiple walkers,
+  meaning of the shaded bands in its own figures) and were filled in with a reasonable
+  interpretation — see Section 3.4.2 of the documentation.
+- The quantum-vs-classical comparison (Stage 3) is illustrative, not from the paper, and
+  uses a single random seed.
+
+## Citation
+
+If you use this code, please cite the original paper:
+
+```bibtex
+@inproceedings{jnane2020growing,
+  title     = {Growing Random Graphs with Quantum Rules},
+  author    = {Jnane, Hamza and Di Molfetta, Giuseppe and Miatto, Filippo M.},
+  booktitle = {Proceedings 9th International Conference on Quantum Simulation
+               and Quantum Walks (QSQW 2020)},
+  series    = {EPTCS},
+  volume    = {315},
+  pages     = {38--47},
+  year      = {2020},
+  doi       = {10.4204/EPTCS.315.4}
+}
+```
+
+## License
+
+No license file is included yet — add one (e.g. MIT, Apache-2.0) before distributing
+this repository publicly.

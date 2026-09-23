@@ -1,0 +1,6 @@
+Código que gerou as simulações e figuras do material "Barabási e as Redes Complexas".
+Execute nesta ordem, na mesma pasta (precisa de numpy, scipy, networkx, matplotlib):
+
+  python sim.py      # distribuição de grau, tabela por N, grau máximo  (~30 s)  -> resultados.json, graus_1e5.npy
+  python cresc.py    # crescimento médio do grau k_i(t), 300 realizações (~35 s)   -> crescimento.json
+  python figs.py     # gera as 6 figuras (fig_*.png) e a simulação de robustez
