@@ -150,7 +150,7 @@ Qualitative agreement with the paper's claims (full numbers and discussion in
 | Diameter maximal for `0.1 < τ < 1` | Reproduced |
 | Leaf fraction stabilizes at τ ≈ 1, size-independent | Reproduced |
 | Clustering is 0 for 1 walker, decreases with τ | Reproduced (except at τ = 0.001) |
-| Possible phase transition at τ ≈ 1 | ❔ Not tested |
+| Possible phase transition at τ ≈ 1 | Not tested |
 
 ## Known limitations
 
