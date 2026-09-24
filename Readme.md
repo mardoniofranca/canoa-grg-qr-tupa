@@ -25,19 +25,13 @@ This README is a shorter, practical companion to that document.
 ```
 .
 ├── README.md
-├── main.ipynb                          # orchestrates all 4 stages, displays the figures inline
 ├── docs/
 │   └── growing_random_graphs_quantum_rules_documentation.docx
 ├── src/
-│   ├── grafo_quantico.py               # Stage 1: simple quantum-inspired model
-│   ├── grafo_quantico_passo_a_passo.py # Stage 2: growth phases (static GIFs)
-│   ├── grafo_classico_passo_a_passo.py # Stage 3: classical growth (comparison)
-│   └── reproduce_jnane_paper.py        # Stage 4: paper reproduction (Figs. 2–8 + extra)
-│
-│   # created on first run, at the working directory the scripts are launched from:
-├── fases/                              # Stage 2 output: static GIFs (quantum)
-├── fases_classico/                     # Stage 3 output: static GIFs (classical)
-└── paper_figures/                      # Stage 4 output: Figs. 2–8, extra check, results.pkl
+│   ├── main.ipynb
+     # Stage 1: simple quantum-inspired model # Stage 2: growth phases (static GIFs)
+     #Stage 3: classical growth (comparison) Stage 4: paper reproduction (Figs. 2–8 + extra)
+── paper_figures/                      # Figs  extra check, results.pkl
 ```
 
 > **Naming note.** Stages 1–3 keep their original Portuguese file names and internal
